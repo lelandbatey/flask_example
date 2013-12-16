@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<textarea id="pasteArea" rows="25" cols="80">
+Paste your text here.
+</textarea>
+<br>
+<input id="submitButton" type="submit" value="Make paste!">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<!-- The above is getting the Jquery javascript plugin from the Google CDN. -->
+<script type="text/javascript">
+$('#submitButton').click(function(){
+
+    var origdata = $('#pasteArea').val();
+    console.log(origdata);
+
+    // Sends a post request to the server with the data, then when the server responds with a URL we redirect to it.
+    $.ajax({
+        type: "POST",
+        url: "/addText/",
+        data: origdata,
+        contentType:"application/text; charset=utf-8", // Declare the type of the data we're sending. Without this, Flask will misinterpret it as some other kind of data.
+        success: function(data){
+            window.location.href = data; // Redirects the page to the one we receive back from the server.
+        }
+    });
+});
+</script>
+</body>
+</html>
