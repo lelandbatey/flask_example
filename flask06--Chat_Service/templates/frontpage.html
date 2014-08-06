@@ -25,6 +25,8 @@ $('#submitButton').click(function(){
 		contentType: "application/text; charset=utf-8",
 		success: function(data){
 			$('#printoutput').html(data);
+			data = JSON.parse(data);
+			window.location.href = window.location+data['roomid'];
 		}
 	});
 });

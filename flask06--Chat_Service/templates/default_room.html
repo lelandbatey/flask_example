@@ -9,34 +9,39 @@
     font-weight: normal;
     line-height: 20px;
     font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
-    margin: 0;
     font-size: 100%;
-    vertical-align: middle;
     height: 600px;
     width: 520px;
     overflow:scroll;
-    display:inline-block;
+    /*display:inline-block;*/
     overflow-x: hidden;
     white-space: pre;
 }
 	</style>
 </head>
 <body>
+	<h1>
+		{{alias}}
+	</h1>
 	<div id='displayArea'>		
-		<h1>
-			{{alias}}
-		</h1>
 		<pre>
 			<div id="myTextArea">
 			</div>
 		</pre>
-		<input id="roomName" placeholder='Type message here' size='60'>
+		<input id="messageArea" placeholder='Type message here' size='60'>
 		<input id='submitButton' type='submit'>
 		<pre id="printoutput"></pre>
 	</div>
 	<div id='loginArea'>
-		<input id='login-username' type="text">
-		<input id='login-password' type='password'>
+		<input id='login-username' type="text"> Username <br>
+		<input id='login-password' type='password'> Password
+		<input id='login-submit' type='submit' value='Submit'>
+	</div>
+	<div id='registerArea'>
+		<input id='register-username' type="text"> Username <br>
+		<input id='register-password' type='password'> Password<br>
+		<input id='register-password2' type='password'> Password
+		<input id='register-submit' type='submit' value='Submit'>
 	</div>
 	<script type="text/javascript">
 
@@ -46,6 +51,112 @@ var roomID = window.location.pathname.split('/')[1];
 var username = "";
 var token = "";
 
+function set_login_vars (uname, hash) {
+	window.username = uname;
+	window.token = hash;
+	$('#loginArea').hide();
+	$('#registerArea').hide();
+	$('#displayArea').show();
+	poll();
+}
+
+
+$('#login-submit').click(function(){
+	var login_username = $('#login-username').val();
+	var login_password = $('#login-password').val();
+
+	var toSend = {
+		"username": login_username,
+		"password": login_password
+	};
+	toSend = JSON.stringify(toSend);
+
+	$.ajax({
+		type: 'POST',
+		url: window.location+'login',
+		data: toSend,
+		contentType: "application/text; charset=utf-8",
+		success: function (data) {
+			data = JSON.parse(data);
+			if (data['succeeded']) {
+				set_login_vars(login_username, data['token']);
+			} else {
+				alert('Login was not successful:\n')
+			}
+		}
+	});
+});
+
+$('#register-submit').click(function(){
+	var register_username = $('#register-username').val();
+	var register_password = $('#register-password').val();
+	var register_password2 = $('#register-password2').val();
+
+	console.log(register_password);
+	console.log(register_password2);
+	if (register_password2 != register_password) {
+		alert('Passwords do not match.');
+	};
+
+	var toSend = {
+		'username': register_username,
+		'password': register_password
+	}
+	toSend = JSON.stringify(toSend);
+
+	$.ajax({
+		type: "POST",
+		url: window.location+'register',
+		data: toSend,
+		contentType: "application/text; charset=utf-8",
+		success: function(data) {
+			data = JSON.parse(data);
+			if (data['succeeded']){
+				alert('Registration was successful! Please log in now.');
+				$('#registerArea').hide();
+			} else {
+				alert('Registration was unsuccessful. Reason:\n'+data['explanation']);
+			}
+		}
+	});
+
+});
+
+function send_message () {
+	var msgtxt = $('#messageArea').val();
+	$('#messageArea').val('');
+	var toSend = {
+		'username': window.username,
+		'token': window.token,
+		'message': msgtxt
+	}
+	toSend = JSON.stringify(toSend);
+
+	$.ajax({
+		type: 'POST',
+		url: window.location+'message',
+		data: toSend,
+		contentType: "application/text; charset=utf-8",
+		success: function(data){
+			data = JSON.parse(data);
+			if (!data['succeeded']){
+				alert(data['explanation']);
+			}
+		}
+	});
+}
+$('#submitButton').click(send_message);
+$(document).ready(function(){
+    $('#messageArea').keypress(function(e){
+        if(e.keyCode==13){
+            send_message(); 
+            // For totally inexplicable reasons, this needs to come before 'event.preventDefault' for it to work in Firefox. I spent too much time figuring that out (4+ hours)
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+
 
 // Updates the contents of 
 function poll(){
@@ -54,6 +165,7 @@ function poll(){
 			url: window.location+'get_conversation',
 			success: function(data){
 				data = JSON.parse(data);
+				console.log(data);
 				var chatOutput = $('#myTextArea');
 				var output = "";
 				for (var i = 0; i < data.length; i++) {
@@ -67,7 +179,12 @@ function poll(){
 	},2000);
 };
 
-// $(document).ready(poll);
+
+$(document).ready(function(){
+	$('#loginArea').show();
+	$('#registerArea').show();
+	$('#displayArea').hide();
+});
 	</script>
 
 </body>

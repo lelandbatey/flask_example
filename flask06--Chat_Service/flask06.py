@@ -3,6 +3,7 @@ import hashlib
 import random
 import json
 import time
+import cgi
 
 
 app = Flask(__name__)
@@ -94,7 +95,7 @@ def return_conversation(roomid):
 
 @app.route('/<roomid>/message', methods=['POST'])
 def create_message(roomid):
-	data = request.get_json()
+	data = request.get_json(force=True)
 
 	room = room_structure[roomid]
 	if ('username' not in data) or (data['username'] not in room['users']):
@@ -120,7 +121,7 @@ def create_message(roomid):
 	nameStr = "<{}>".format(uname)
 	msgString = ' '.join([timeStr,nameStr,data['message']])
 
-	room['messages'].append(msgString)
+	room['messages'].append(cgi.escape(msgString))
 
 	return json.dumps({'succeeded': True,"explanation":None})
 
@@ -128,7 +129,7 @@ def create_message(roomid):
 
 @app.route('/<roomid>/login',methods=['POST'])
 def login(roomid):
-	data = request.get_json()
+	data = request.get_json(force=True)
 	room = room_structure[roomid]
 
 	failResponse = json.dumps({"succeeded": False,"token": None})
@@ -154,7 +155,9 @@ def login(roomid):
 
 @app.route('/<roomid>/register', methods=['POST'])
 def register(roomid):
-	data = request.get_json()
+	data = request.get_json(force=True)
+	print(data)
+	print(request.data)
 	room = room_structure[roomid]
 
 	failResponse = {"succeeded": False,"explanation": None}
@@ -167,7 +170,7 @@ def register(roomid):
 	room['users'][data['username']] = {}
 	user = room['users'][data['username']]
 
-	user['token'] = get_hashval(data[password])
+	user['token'] = get_hashval(data['password'])
 	
 	return json.dumps({'succeeded':True,"explanation":None})
 
