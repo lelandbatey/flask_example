@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Getting the Jquery javascript plugin from the Google CDN -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<style type="text/css">
+#myTextArea{
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 20px;
+    font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+    margin: 0;
+    font-size: 100%;
+    vertical-align: middle;
+    height: 600px;
+    width: 520px;
+    overflow:scroll;
+    display:inline-block;
+    overflow-x: hidden;
+    white-space: pre;
+}
+	</style>
+</head>
+<body>
+	<div id='displayArea'>		
+		<h1>
+			{{alias}}
+		</h1>
+		<pre>
+			<div id="myTextArea">
+			</div>
+		</pre>
+		<input id="roomName" placeholder='Type message here' size='60'>
+		<input id='submitButton' type='submit'>
+		<pre id="printoutput"></pre>
+	</div>
+	<div id='loginArea'>
+		<input id='login-username' type="text">
+		<input id='login-password' type='password'>
+	</div>
+	<script type="text/javascript">
+
+// Global variable holding the id of the room we're in.
+var roomID = window.location.pathname.split('/')[1];
+
+var username = "";
+var token = "";
+
+
+// Updates the contents of 
+function poll(){
+	setTimeout(function(){
+		$.ajax({
+			url: window.location+'get_conversation',
+			success: function(data){
+				data = JSON.parse(data);
+				var chatOutput = $('#myTextArea');
+				var output = "";
+				for (var i = 0; i < data.length; i++) {
+					output += data[i]+'\n';
+				};
+
+				chatOutput.html(output);
+			}
+		});
+		poll();
+	},2000);
+};
+
+// $(document).ready(poll);
+	</script>
+
+</body>
+
+</html>
